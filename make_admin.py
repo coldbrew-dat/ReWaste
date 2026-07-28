@@ -8,7 +8,7 @@ with app.app_context():
         email="admin@rewaste.pk",
         is_admin=True,
     )
-    admin.set_password("YourStrongPassword123")
+    admin.set_password("12#")
     db.session.add(admin)
     db.session.commit()
     print("Admin account created:", admin.email)
