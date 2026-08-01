@@ -74,7 +74,7 @@ Install the required dependencies.
 pip install -r requirements.txt
 ```
 
-If you would like to use PostgreSQL instead of the default SQLite database, copy .env.example to .env and set your own SECRET_KEY and DATABASE_URL. This step is optional for local development.
+If you would like to use PostgreSQL instead of the default SQLite database, create .env and set your own SECRET_KEY and DATABASE_URL. This step is optional for local development.
 
 Run the app with the following command.
 
