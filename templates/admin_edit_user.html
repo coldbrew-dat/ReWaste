@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Edit business — Admin{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto animate-fadeUp">
+  <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50/80 px-3 py-1.5 rounded-full">
+    <i data-lucide="shield" class="w-3.5 h-3.5"></i> Admin
+  </span>
+  <h1 class="font-display text-3xl font-bold mt-3 mb-8">Edit business</h1>
+
+  <form method="POST" action="{{ url_for('admin.admin_edit_user', user_id=target_user.id) }}"
+        class="grad-border glass-strong rounded-3xl p-6 sm:p-8 flex flex-col gap-5">
+
+    <div class="relative">
+      <input id="business_name" type="text" name="business_name" value="{{ target_user.business_name }}" placeholder=" " required
+             class="peer input-glass w-full rounded-2xl px-4 pt-5 pb-2 text-sm" />
+      <label for="business_name" class="absolute left-4 top-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+        Business name
+      </label>
+    </div>
+
+    <div class="relative">
+      <input id="email" type="email" name="email" value="{{ target_user.email }}" placeholder=" " required
+             class="peer input-glass w-full rounded-2xl px-4 pt-5 pb-2 text-sm" />
+      <label for="email" class="absolute left-4 top-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+        Email
+      </label>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-5">
+      <div class="relative">
+        <input id="sector" type="text" name="sector" value="{{ target_user.sector or '' }}" placeholder=" "
+               class="peer input-glass w-full rounded-2xl px-4 pt-5 pb-2 text-sm" />
+        <label for="sector" class="absolute left-4 top-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+          Sector
+        </label>
+      </div>
+      <div class="relative">
+        <input id="city" type="text" name="city" value="{{ target_user.city or '' }}" placeholder=" "
+               class="peer input-glass w-full rounded-2xl px-4 pt-5 pb-2 text-sm" />
+        <label for="city" class="absolute left-4 top-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+          City
+        </label>
+      </div>
+    </div>
+
+    <div class="relative">
+      <input id="new_password" type="password" name="new_password" placeholder=" "
+             class="peer input-glass w-full rounded-2xl px-4 pt-5 pb-2 text-sm" />
+      <label for="new_password" class="absolute left-4 top-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+        Reset password (leave blank to keep current)
+      </label>
+    </div>
+
+    <label class="flex items-center gap-2.5 text-sm font-medium text-ink/80 select-none">
+      <input type="checkbox" name="is_admin" {% if target_user.is_admin %}checked{% endif %}
+             class="w-4 h-4 rounded accent-emerald-600" />
+      Grant admin access to this business
+    </label>
+
+    <div class="h-px bg-gradient-to-r from-transparent via-emerald-900/15 to-transparent my-1"></div>
+
+    <div class="flex items-center gap-3">
+      <button type="submit" class="btn-grad text-white font-semibold text-sm px-6 py-2.5 rounded-full transition-all flex items-center gap-2">
+        Save changes <i data-lucide="check" class="w-4 h-4"></i>
+      </button>
+      <a href="{{ url_for('admin.admin_businesses') }}" class="text-sm text-slate2 hover:text-ink font-medium px-2">Cancel</a>
+    </div>
+  </form>
+
+  <div class="mt-6 grad-border glass-strong rounded-3xl p-6 flex items-center justify-between">
+    <div>
+      <p class="font-semibold text-sm">Danger zone</p>
+      <p class="text-xs text-slate2 mt-1">Deleting this business also removes all of their listings, requests, and score data.</p>
+    </div>
+    <form method="post" action="{{ url_for('admin.admin_delete_user', user_id=target_user.id) }}"
+          onsubmit="return confirm('Delete this business and everything tied to it? This cannot be undone.');">
+      <button type="submit" class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-4 py-2 rounded-full transition-colors">
+        Delete business
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

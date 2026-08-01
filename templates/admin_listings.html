@@ -33,17 +33,19 @@
             </span>
           </td>
           <td class="px-4 py-3">
-    <a href="{{ url_for('admin.admin_edit_listing', listing_id=item.id) }}"
-       class="inline-block bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-1.5 rounded-full transition-colors mr-2">
-      Edit
-    </a>
-    <form method="post" action="{{ url_for('admin.admin_remove_listing', listing_id=item.id) }}"
-          onsubmit="return confirm('Remove this listing?');" class="inline">
-      <button type="submit" class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3.5 py-1.5 rounded-full transition-colors">
-        Remove
-      </button>
-    </form>
-    </td>
+            <div class="flex items-center gap-2">
+              <a href="{{ url_for('listing.edit_listing', listing_id=item.id) }}"
+                 class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-1.5 rounded-full transition-colors">
+                Edit
+              </a>
+              <form method="post" action="{{ url_for('admin.admin_remove_listing', listing_id=item.id) }}"
+                    onsubmit="return confirm('Remove this listing?');">
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3.5 py-1.5 rounded-full transition-colors">
+                  Remove
+                </button>
+              </form>
+            </div>
+          </td>
         </tr>
       {% endfor %}
     </tbody>

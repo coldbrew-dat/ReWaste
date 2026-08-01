@@ -18,6 +18,7 @@
         <th class="px-4 py-3 font-semibold">Sector</th>
         <th class="px-4 py-3 font-semibold">City</th>
         <th class="px-4 py-3 font-semibold">Joined</th>
+        <th class="px-4 py-3 font-semibold">Action</th>
       </tr>
     </thead>
     <tbody>
@@ -29,6 +30,20 @@
           <td class="px-4 py-3 text-ink/80">{{ one_user.sector or '—' }}</td>
           <td class="px-4 py-3 text-ink/80">{{ one_user.city or '—' }}</td>
           <td class="px-4 py-3 text-xs text-slate2">{{ one_user.created_at.strftime("%d %b %Y") }}</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <a href="{{ url_for('admin.admin_edit_user', user_id=one_user.id) }}"
+                 class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-1.5 rounded-full transition-colors">
+                Edit
+              </a>
+              <form method="post" action="{{ url_for('admin.admin_delete_user', user_id=one_user.id) }}"
+                    onsubmit="return confirm('Delete this business and everything tied to it?');">
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3.5 py-1.5 rounded-full transition-colors">
+                  Delete
+                </button>
+              </form>
+            </div>
+          </td>
         </tr>
       {% endfor %}
     </tbody>

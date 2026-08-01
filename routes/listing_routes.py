@@ -1,5 +1,5 @@
 """
-listing_routes.py  — Maheen's module.
+listing_routes.py
 Handles: browse listings, create listing, view single listing,
          edit listing, delete listing, search + filter.
 """
@@ -190,7 +190,7 @@ def create_listing():
 def edit_listing(listing_id):
     listing = Listing.query.get_or_404(listing_id)
 
-    if listing.user_id != session['user_id']:
+    if listing.user_id != session['user_id'] and not session.get('is_admin'):
         flash('You can only edit your own listings.', 'error')
         return redirect(url_for('listing.view_listing', listing_id=listing_id))
 
@@ -224,7 +224,6 @@ def edit_listing(listing_id):
             filename    = secure_filename(photo_file.filename)
             unique_name = f"{session['user_id']}_{int(__import__('time').time())}_{filename}"
             upload_path = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_name)
-            os.makedirs(current_app.config['UPLOAD_FOLDER'], exist_ok=True) 
             photo_file.save(upload_path)
             listing.photo = unique_name
 
@@ -245,7 +244,7 @@ def edit_listing(listing_id):
 def delete_listing(listing_id):
     listing = Listing.query.get_or_404(listing_id)
 
-    if listing.user_id != session['user_id']:
+    if listing.user_id != session['user_id'] and not session.get('is_admin'):
         flash('You can only delete your own listings.', 'error')
         return redirect(url_for('listing.view_listing', listing_id=listing_id))
 

@@ -1,25 +1,12 @@
 """
-admin_routes.py — haadiya's module
+admin_routes.py
 a basic panel only an admin account can open
 """
 from flask import Blueprint, render_template, redirect, url_for, flash, session, request, current_app
 from models.db import db
 from models.models import User, Listing, Request
-import os
-from werkzeug.utils import secure_filename
 
 admin_bp = Blueprint('admin', __name__)
-
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
-MATERIAL_TYPES = ['Plastic', 'Metal', 'Paper', 'Fabric', 'Glass',
-                  'Wood', 'Electronics', 'Rubber', 'Chemical', 'Other']
-CITIES = ['Islamabad', 'Karachi', 'Lahore', 'Rawalpindi', 'Peshawar',
-          'Quetta', 'Faisalabad', 'Multan', 'Hyderabad', 'Other']
-UNITS = ['kg', 'tonnes', 'pieces', 'litres', 'meters']
-
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def admin_required(f):
@@ -40,6 +27,7 @@ def admin_dashboard():
     total_users = User.query.count()
     total_listings = Listing.query.count()
     total_completed = Request.query.filter_by(status='completed').count()
+
     return render_template(
         'admin_dashboard.html',
         total_users=total_users,
@@ -75,51 +63,59 @@ def admin_remove_listing(listing_id):
     return redirect(url_for('admin.admin_listings'))
 
 
-@admin_bp.route('/admin/listings/<int:listing_id>/edit', methods=['GET', 'POST'])
+@admin_bp.route('/admin/businesses/<int:user_id>/edit', methods=['GET', 'POST'])
 @admin_required
-def admin_edit_listing(listing_id):
-    # lets the admin edit ANY listing, including uploading a photo,
-    # without needing to own it
-    listing = Listing.query.get_or_404(listing_id)
+def admin_edit_user(user_id):
+    # lets an admin edit any business's profile info
+    target_user = User.query.get_or_404(user_id)
 
     if request.method == 'POST':
-        listing.title         = request.form.get('title', listing.title).strip()
-        listing.material_type = request.form.get('material_type', listing.material_type)
-        listing.unit           = request.form.get('unit', listing.unit)
-        listing.city          = request.form.get('city', listing.city)
-        listing.description   = request.form.get('description', listing.description).strip()
+        target_user.business_name = request.form.get('business_name', target_user.business_name).strip()
+        target_user.email = request.form.get('email', target_user.email).strip()
+        target_user.sector = request.form.get('sector', target_user.sector)
+        target_user.city = request.form.get('city', target_user.city)
+        target_user.is_admin = True if request.form.get('is_admin') == 'on' else False
 
-        try:
-            listing.quantity = float(request.form.get('quantity', listing.quantity))
-        except ValueError:
-            flash('Quantity must be a number.', 'error')
-            return redirect(url_for('admin.admin_edit_listing', listing_id=listing_id))
-
-        try:
-            listing.price = float(request.form.get('price', listing.price))
-        except ValueError:
-            flash('Price must be a number.', 'error')
-            return redirect(url_for('admin.admin_edit_listing', listing_id=listing_id))
-
-        photo_file = request.files.get('photo')
-        if photo_file and photo_file.filename and allowed_file(photo_file.filename):
-            if listing.photo:
-                old_path = os.path.join(current_app.config['UPLOAD_FOLDER'], listing.photo)
-                if os.path.exists(old_path):
-                    os.remove(old_path)
-            filename    = secure_filename(photo_file.filename)
-            unique_name = f"admin_{int(__import__('time').time())}_{filename}"
-            upload_path = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_name)
-            os.makedirs(current_app.config['UPLOAD_FOLDER'], exist_ok=True)
-            photo_file.save(upload_path)
-            listing.photo = unique_name
+        new_password = request.form.get('new_password', '').strip()
+        if new_password:
+            target_user.set_password(new_password)
 
         db.session.commit()
-        flash('Listing updated by admin.', 'success')
-        return redirect(url_for('admin.admin_listings'))
+        flash('business updated.', 'success')
+        return redirect(url_for('admin.admin_businesses'))
 
-    return render_template('edit_listing.html',
-                           listing=listing,
-                           material_types=MATERIAL_TYPES,
-                           cities=CITIES,
-                           units=UNITS)
+    return render_template('admin_edit_user.html', target_user=target_user)
+
+
+@admin_bp.route('/admin/businesses/<int:user_id>/delete', methods=['POST'])
+@admin_required
+def admin_delete_user(user_id):
+    # removes a business entirely, along with everything tied to it
+    target_user = User.query.get_or_404(user_id)
+
+    if target_user.id == session.get('user_id'):
+        flash('you cannot delete your own admin account while logged in.', 'error')
+        return redirect(url_for('admin.admin_businesses'))
+
+    # remove requests where this user was buyer or seller
+    Request.query.filter(
+        (Request.buyer_id == target_user.id) | (Request.seller_id == target_user.id)
+    ).delete(synchronize_session=False)
+
+    # remove their listings (this also removes any requests tied to those listings
+    # via the cascade already set up on Listing.requests)
+    for listing in Listing.query.filter_by(user_id=target_user.id).all():
+        if listing.photo:
+            import os
+            photo_path = os.path.join(current_app.config['UPLOAD_FOLDER'], listing.photo)
+            if os.path.exists(photo_path):
+                os.remove(photo_path)
+        db.session.delete(listing)
+
+    if target_user.score:
+        db.session.delete(target_user.score)
+
+    db.session.delete(target_user)
+    db.session.commit()
+    flash('business and all associated data removed.', 'success')
+    return redirect(url_for('admin.admin_businesses'))
